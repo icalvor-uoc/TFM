@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate" />
+  <meta http-equiv="content-language" content="en" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- https://getbootstrap.com/ -->
+  <!-- CSS only -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+   <link rel="stylesheet" href="styles.css">
+  <!-- https://vuejs.org/v2/guide/ -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <link rel="icon" type="image/svg" sizes="48x48" href="icon.svg">
+  <title>title</title>
+</head>
+<body>
+
+  <div class="container">
+    <div class="row">
+	  <div class="col6 mx-auto mt-5">
+
+<!-- https://github.com/danklammer/bytesize-icons -->
+
+
+
+<div id="app">
+
+
+
+  <div class="content" v-cloak>
+    <form>
+    <div class="row">
+      <select class="col-2" name="selected-graph" id="selected-graph" v-model="selected_graph" v-on:change="getGraph()">
+	    <option value="1">DBpedia</option>
+	    <option value="2">Empty graph</option>
+	  </select>
+      <select class="col-2" name="selected-grefinement" id="selected-grefinement" v-model="selected_grefinement" v-on:change="getGraphRefinement()">
+	    <option v-for="item, i in grefinement_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+	  </select>
+	  <div class="col-7">
+	    <div class="row">
+        <label for="new-grefinement" class="col-4 text-right"><strong>New graph refinement:</strong></label>
+        <input type="text" class="col-8" name="new-grefinement" id="new-grefinement" v-model="new_grefinement">
+		</div>
+      </div>
+
+	  </div>
+	  <div class="row">
+      
+	  <div class="col-11">
+	    <div class="row" v-if="graph_refinement.statements" v-for="statement, i in graph_refinement.statements">
+	    <input type="text" class="col-4" v-model="statement.s">
+	    <input type="text" class="col-3" v-model="statement.p">
+	    <input type="text" class="col-4" v-model="statement.o">
+		<div class="col-1"><a href="#" @click.prevent="graph_refinement.statements.splice(i,1)">Remove</a></div>
+		</div>
+		<a href="#" @click.prevent="graph_refinement.statements.push({s:'', p:'', o:''})">Add</a>
+	  </div>
+	  
+	  <div class="col-1">
+	   <!-- <div class="row">
+	      <button class="btn-xs btn-success p-4 rounded-0" @click.prevent="cu_graphrefinement()">
+            <svg id="i-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M2 26 L30 26 30 7 14 7 10 4 2 4 Z M30 12 L2 12" />
+            </svg>
+          </button>
+	      <button class="btn-xs btn-danger p-4 rounded-0" @click.prevent="d_graphrefinement()">
+		    <svg id="i-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+              <path d="M28 6 L6 6 8 30 24 30 26 6 4 6 M16 12 L16 24 M21 12 L20 24 M11 12 L12 24 M12 6 L13 2 19 2 20 6" />
+            </svg>
+		  </button>
+		</div> //-->
+	  </div>
+	  </form>
+    </div>
+<!--
+    <div class="row">
+      <div class="col">
+        <label for=""><strong>Wikipedia URL:</strong></label>
+        <input type="text" class="col-8" name="extraction-page" id="extraction-page" v-model="extraction_page">
+        <button v-on:click.prevent="new_extraction_url()">
+		   <svg id="i-chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+             <path d="M12 30 L24 16 12 2" />
+           </svg>
+         </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for=""><strong>Random fetch prefix: </strong></label>
+        <input type="text" id="extraction-prefix" class="extraction-prefix" v-model="extraction_prefix" class="col-4" >
+        <label for=""><strong>Number of results: </strong></label>
+		<select class="col-2" class="extraction-number" id="extraction-number" v-model="extraction_number">
+		  <option value="1">1</option>
+		  <option value="5">5</option>
+		  <option value="10">10</option>
+		  <option value="15">15</option>
+		</select>
+        <button v-on:click.prevent="new_extraction_prefix()">
+		   <svg id="i-chevron-right" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+             <path d="M12 30 L24 16 12 2" />
+           </svg>
+         </button>
+      </div>
+    </div>
+//-->	
+	<div class="row">
+      <div class="col">
+		<select class="col-8" name="selected-extraction" id="selected-extraction" v-model="selected_extraction" v-on:change="getPreFetch()">
+		  <option v-for="item, i in extraction_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+		</select>
+      </div>
+    </div>
+
+    <div id="extraction-ui" v-if="active_extraction != 0">
+
+    <div class="stageviewer" id="stageviewer">
+      <ul class="nav nav-tabs">
+        <li class="nav-item"><a class="nav-link" v-bind:class="{active: active_panel == 1}" href="#" @click.prevent="switchPanel(1)"><h1>Fetch</h1></a></li>
+        <li class="nav-item"><a class="nav-link" v-bind:class="{active: active_panel == 2}" href="#" @click.prevent="switchPanel(2)"><h1>Entextr</h1></a></li>
+        <li class="nav-item"><a class="nav-link" v-bind:class="{active: active_panel == 3}" href="#" @click.prevent="switchPanel(3)"><h1>Triplegen</h1></a></li>
+        <li class="nav-item"><a class="nav-link" v-bind:class="{active: active_panel == 4}" href="#" @click.prevent="switchPanel(4)"><h1>Tripleval</h1></a></li>
+      </ul>
+	  
+	</div>  
+
+      <div id="fetch-panel" v-if="active_panel == 1">
+	  
+		  <div class="row">
+			<select class="col-2" name="selected-fetch" id="selected-fetch" v-model="selected_fetch" v-on:change="getFetch()">
+			  <option v-for="item in fetch_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+			</select>
+		<select class="col-2" name="selected-frefinement" id="selected-frefinement" v-model="selected_frefinement" v-on:change="getFRefinement();getPreNerd()">
+			<option v-for="item, i in frefinement_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+		</select>
+			
+			
+			<div class="col-7">
+				<div class="row">
+					<label for="" class="col-4 text-right"><strong>New fetch refinement:</strong></label>
+					<input type="text" class="col-8" name="new-frefinement" id="new-frefinement" v-model="new_frefinement">
+				</div>
+			</div>
+		  </div>
+
+		  <div class="row">		
+<!--			<div class="col-11">
+			<input type="text" class="col-8"  v-model="fetch_refinement.mainSection.title">
+			<div class="row" v-for="item in fetch_refinement.mainSection.sectionItems"> {^vue^ item ^vue^} </div>
+			<div class="row" v-for="item in fetch_refinement.mainSection.subsections"> {^vue^ item.title ^vue^}
+			<div class="row" v-for="item2 in item.sectionItems"> {^vue^ item2 ^vue^} <p v-if="typeof(item2) == 'object'" v-on:click="listClicked(item2)">ee</p> </div>
+			</div>
+			
+			 <div class="row"><textarea name="txt-fetch-refinement" id="txt-fetch-refinement" cols="30" rows="10" v-model="fetch_refinement"></textarea></div> 
+	      </div>  //-->
+            <div class="col-11"> <fetch_section :section="fetch_refinement.mainSection"> </fetch_section> </div>
+ <!--
+			<div class="col-1">
+				<div class="row">
+				  <button class="btn-xs btn-success p-4 rounded-0" v-on:click.prevent="cuFRefinement()">
+					<svg id="i-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M2 26 L30 26 30 7 14 7 10 4 2 4 Z M30 12 L2 12" />
+					</svg>
+				  </button>
+				  <button class="btn-xs btn-danger p-4 rounded-0" v-on:click.prevent="delFRefinement()">
+					<svg id="i-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M28 6 L6 6 8 30 24 30 26 6 4 6 M16 12 L16 24 M21 12 L20 24 M11 12 L12 24 M12 6 L13 2 19 2 20 6" />
+					</svg>
+				  </button>
+				</div>
+			</div>
+//-->
+		  </div>
+
+      </div>
+
+	  
+
+      <div id="nerd-panel" v-if="active_panel == 2">
+	  
+		  <div class="row">
+			<select class="col-2" name="selected-nerd" id="selected-nerd" v-model="selected_nerd" v-on:change="getNerd()">
+			  <option v-for="item in nerd_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+			</select>
+		<select class="col-2" name="selected-nrefinement" id="selected-nrefinement" v-model="selected_nrefinement" v-on:change="getNRefinement();getPreTriplegen()">
+			<option v-for="item, i in nrefinement_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+		</select>
+			
+			
+			<div class="col-7">
+				<div class="row">
+					<label for="" class="col-4 text-right"><strong>New Entextr refinement:</strong></label>
+					<input type="text" class="col-8" name="new-nrefinement" id="new-nrefinement" v-model="new_nrefinement">
+				</div>
+			</div>
+		  </div>
+
+		  <div class="row">		
+		  
+		  <!--
+			<div class="col-11">
+			<div class="row"><textarea name="txt-nerd-refinement-txt" id="txt-nerd-refinement-txt" cols="30" rows="10" v-model="nerd_refinement_txt"></textarea></div>
+			<div class="row"><textarea name="txt-nerd-refinement-ttl" id="txt-nerd-refinement-ttl" cols="30" rows="10" v-model="nerd_refinement_ttl"></textarea></div>
+	        </div>
+			-->
+			
+            <div class="col-11"> <nerd_section :section="nerd_refinement.mainSection"> </nerd_section> </div>
+			<!--
+			<div class="col-1">
+				<div class="row">
+				  <button class="btn-xs btn-success p-4 rounded-0" v-on:click.prevent="cuNRefinement()">
+					<svg id="i-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M2 26 L30 26 30 7 14 7 10 4 2 4 Z M30 12 L2 12" />
+					</svg>
+				  </button>
+				  <button class="btn-xs btn-danger p-4 rounded-0" v-on:click.prevent="delNRefinement()">
+					<svg id="i-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M28 6 L6 6 8 30 24 30 26 6 4 6 M16 12 L16 24 M21 12 L20 24 M11 12 L12 24 M12 6 L13 2 19 2 20 6" />
+					</svg>
+				  </button>
+				</div>
+			</div>
+			//-->
+		  </div>
+	</div>
+	  
+	  
+      <div id="triplegen-panel" v-if="active_panel == 3">
+	  
+		  <div class="row">
+			<select class="col-2" name="selected-triplegen" id="selected-triplegen" v-model="selected_triplegen" v-on:change="getTriplegen()">
+			  <option v-for="item in triplegen_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+			</select>
+		<select class="col-2" name="selected-tgrefinement" id="selected-tgrefinement" v-model="selected_tgrefinement" v-on:change="getTGRefinement();getPreTripleval()">
+			<option v-for="item, i in tgrefinement_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+		</select>
+			
+			
+			<div class="col-7">
+				<div class="row">
+					<label for="" class="col-4 text-right"><strong>New Triplegen refinement:</strong></label>
+					<input type="text" class="col-8" name="new-tgrefinement" id="new-tgrefinement" v-model="new_tgrefinement">
+				</div>
+			</div>
+		  </div>
+
+		  <div class="row">		
+			<div class="col-11">
+			
+			<div class="row" v-for="unit, i in triplegen_refinement.units">
+			<strong>Unit {^vue^ i ^vue^}</strong>
+			<textarea name="triplegen-refinement" id="triplegen-refinement" cols="30" rows="10" v-model="unit.evidence"></textarea>
+			<ul>
+			<li v-for="statement in unit.statements">{^vue^ statement[0] ^vue^} {^vue^ statement[1] ^vue^} {^vue^ statement[2] ^vue^}</li>
+			</ul>
+             <textarea name="triplegen-refinement" id="triplegen-refinement" cols="30" rows="10" v-model="unit.description"></textarea>
+			
+			<hr>
+
+	         </div>
+			</div>
+			
+<!--			
+			<div class="col-1">
+				<div class="row">
+				  <button class="btn-xs btn-success p-4 rounded-0" v-on:click.prevent="cuTGRefinement()">
+					<svg id="i-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M2 26 L30 26 30 7 14 7 10 4 2 4 Z M30 12 L2 12" />
+					</svg>
+				  </button>
+				  <button class="btn-xs btn-danger p-4 rounded-0" v-on:click.prevent="delTGRefinement()">
+					<svg id="i-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M28 6 L6 6 8 30 24 30 26 6 4 6 M16 12 L16 24 M21 12 L20 24 M11 12 L12 24 M12 6 L13 2 19 2 20 6" />
+					</svg>
+				  </button>
+				</div>
+			</div>
+//-->
+		  </div>
+
+      </div>
+
+	  
+
+	  
+	  
+      <div id="tripleval-panel" v-if="active_panel == 4">
+	  
+
+		  <div class="row">
+			<select class="col-2" name="selected-tripleval" id="selected-tripleval" v-model="selected_tripleval" v-on:change="getTripleval()">
+			  <option v-for="item in tripleval_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+			</select>
+		<select class="col-2" name="selected-terefinement" id="selected-terefinement" v-model="selected_terefinement" v-on:change="getTERefinement()">
+			<option v-for="item, i in terefinement_list" v-bind:value="item">{^vue^ item.name ^vue^}</option>
+		</select>
+			
+			
+			<div class="col-7">
+				<div class="row">
+					<label for="" class="col-4 text-right"><strong>New Tripleval refinement:</strong></label>
+					<input type="text" class="col-8" name="new-terefinement" id="new-terefinement" v-model="new_terefinement">
+				</div>
+			</div>
+		  </div>
+
+		  <div class="row">		
+			<div class="col-11">
+
+        <div class="survey">
+		
+			<div class="row" v-for="unit, i in tripleval_refinement.units">
+			<strong>Unit {^vue^ i ^vue^}</strong>
+			<p style="white-space: pre-line"> {^vue^ unit.evidence ^vue^}</p>
+			<hr>
+             <p style="white-space: pre-line"> {^vue^ unit.description ^vue^}</p>
+			
+			<hr>
+
+
+			<div class="col-8">
+				<div class="row quality">
+				 <ul class="nav nav-pills">
+				    <li class="nav-item"><a class="nav-link" v-bind:class="{active: unit.quality == 'Bad'}" href="#" v-on:click.prevent="switchQuality(i, 'Bad')"><h6>Bad</h6></a></li>
+				    <li class="nav-item"><a class="nav-link" v-bind:class="{active: unit.quality == 'Mediocre'}" href="#" v-on:click.prevent="switchQuality(i, 'Mediocre')"><h6>Mediocre</h6></a></li>
+				    <li class="nav-item"><a class="nav-link" v-bind:class="{active: unit.quality == 'Good'}" href="#" v-on:click.prevent="switchQuality(i, 'Good')"><h6>Good</h6></a></li>
+				 </ul>
+				</div>
+				<div class="row certainty">
+				 <ul class="nav nav-pills">				
+				    <li class="nav-item"><a class="nav-link" v-bind:class="{active: unit.certainty == 'NotSure'}" href="#" v-on:click.prevent="switchCertainty(i, 'NotSure')"><h6>NotSure</h6></a></li>
+				    <li class="nav-item"><a class="nav-link" v-bind:class="{active: unit.certainty == 'Sure'}" href="#" v-on:click.prevent="switchCertainty(i, 'Sure')"><h6>Sure</h6></a></li>
+				</ul>
+				</div>
+			</div>
+
+		  
+	         </div>		  
+		  
+        </div>
+
+	        </div>
+			
+			<!--
+			
+			<div class="col-1">
+				<div class="row">
+				  <button class="btn-xs btn-success p-4 rounded-0" v-on:click.prevent="cuTERefinement()">
+					<svg id="i-folder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M2 26 L30 26 30 7 14 7 10 4 2 4 Z M30 12 L2 12" />
+					</svg>
+				  </button>
+				  <button class="btn-xs btn-danger p-4 rounded-0" v-on:click.prevent="delTERefinement()">
+					<svg id="i-trash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+					  <path d="M28 6 L6 6 8 30 24 30 26 6 4 6 M16 12 L16 24 M21 12 L20 24 M11 12 L12 24 M12 6 L13 2 19 2 20 6" />
+					</svg>
+				  </button>
+				</div>
+			</div>
+
+            //-->
+
+		  </div>
+        
+
+
+      </div>
+
+     </div>
+
+  </div>
+</div>
+
+
+<script type="text/x-template" id="fetch_section_component">
+    <div>
+  <template v-if="section">
+	  <input type="text"  v-model="section.title" >
+      <div v-for="item, i in section.sectionItems">
+	    <ul v-if="typeof(item) == 'object'">
+		  <li v-for="listitem, j in item" :key="j"> 
+		  <textarea class="col-11" cols="30" rows="3" v-model="section.sectionItems[i][j]">
+	      </textarea>
+          </li>
+
+		</ul>
+		<textarea v-else class="col-11" cols="30" rows="3" v-model="section.sectionItems[i]">
+	    </textarea>
+	  </div>
+
+      <fetch_section v-for="item in section.subsections" :section="item" style="margin-left:2em;"> </fetch_section> 
+  </template>
+    </div>
+</script>
+
+<script type="text/x-template" id="nerd_section_component">
+    <div>
+  <template v-if="section">
+	  <strong v-on:click="placeholder()">{^vue^ section.title ^vue^}</strong>
+      <div v-for="item, i in section.sectionItems">
+	    <ul v-if="item.length">
+		  <li v-for="listitem, j in item" :key="j"> 
+		  <p>{^vue^ section.sectionItems[i][j].text ^vue^}</p>
+		  <ul>
+		  <li v-for="ann, k in listitem.annotations"> {^vue^ ann.surface ^vue^} 
+		  <input type="text" v-model="ann.start" class="col-1" v-on:change="ann.surface=listitem.text.substring(ann.start, ann.end)">
+		  <input type="text" v-model="ann.end" class="col-1"  v-on:change="ann.surface=listitem.text.substring(ann.start, ann.end)">
+		  <input type="text" v-model="ann.uri" class="col-6">
+		  
+		  <a href="#" @click.prevent="listitem.annotations.splice(k, 1)">Remove</a> </li>
+		  <a href="#" @click.prevent="listitem.annotations.push({surface:'', start:0, end:0, uri:'http://sample.internal', source:'refinement'})">Add</a>
+		  </ul>
+		  </li>
+		</ul>
+		  <p>{^vue^ section.sectionItems[i].text ^vue^}</p>
+	  </div>
+
+      <nerd_section v-for="item in section.subsections" :section="item" style="margin-left:2em;"> </nerd_section> 
+  </template>
+	</div>
+</script>
+
+      </div>
+	</div>
+  </div>
+
+
+  <script type="text/javascript" src="main.js"></script>
+
+</body>
+</html>
