@@ -15,7 +15,7 @@ async function postRequest(path, args) {
 
 async function getRequest(path, args) {
 	
-	var prefix = 'https://raw.githubusercontent.com/icalvor-uoc/TFM/main'
+	var prefix = 'https://calvoritmo.com' //'https://raw.githubusercontent.com/icalvor-uoc/TFM/main'
 	
 	var url = new URL(prefix + path)
 	// url.search = new URLSearchParams(args).toString()
